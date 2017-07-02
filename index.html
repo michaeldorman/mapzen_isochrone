@@ -1,0 +1,80 @@
+<!-- Spatial Query -->
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet Map</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+	<div id="map"></div>
+	<script>
+        var map = L.map('map').setView([32.076487, 34.773833], 14);
+
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        	maxZoom: 19,
+	        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        var iso = null;
+        var myLocation = null;
+        var locationMarker = null;
+
+        // Set 'Your Location' icon
+        var redIcon = L.icon({
+         iconUrl: 'images/redIcon.png',
+         shadowUrl: 'images/marker-shadow.png',
+         iconAnchor: [12, 41] //[iconWidth/2, iconHeight]
+        });
+
+        // Listen for a click event on the Map element
+        map.on('click', locationFound);
+
+        // Function that will run when the location of the user is found
+        function locationFound(e){
+            myLocation = e.latlng;
+            isochrone();
+            locationMarker = L.marker(e.latlng, {icon: redIcon}).addTo(map);
+        };
+
+        // Function that will run if the location of the user is not found
+        function locationNotFound(e){
+            alert(e.message);
+        };
+
+        function isochrone() {
+
+        // remove plantLocations if on map
+        if(map.hasLayer(iso)){
+          map.removeLayer(iso);
+        };
+
+        // remove locationMarker if on map
+        if(map.hasLayer(locationMarker)){
+          map.removeLayer(locationMarker);
+        };
+        
+       // Get GeoJSON of five closest points to the user
+
+         $.getJSON('https://matrix.mapzen.com/isochrone?json={"locations":[{"lat":'+myLocation.lat+',"lon":'+myLocation.lng+'}],"costing":"pedestrian","contours":[{"time":15,"color":"ff0000"}]}&id=Walk&api_key=mapzen-HDuRSyz', function(data) {
+         //$.getJSON('isochrone.geojson', function(data) {
+         iso = L.geoJson(data).addTo(map);
+       });
+};
+
+	</script>
+</body>
+</html>
+
